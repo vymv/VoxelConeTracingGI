@@ -24,10 +24,10 @@ bool isOutsideVoxelizationRegion(vec3 posW)
 #ifdef CONSERVATIVE_VOXELIZATION
 in ConservativeVoxelizationFragmentInput
 {
-	vec3 posW;
-    vec3 posClip;
+	vec3 posW; // 三角形三个点不同，进行插值
+    vec3 posClip; // 三角形三个点不同，进行插值
     flat vec4 triangleAABB;
-	flat vec3[3] trianglePosW;
+	flat vec3[3] trianglePosW; // 三个点值相同，插值之后值不变
 	flat int faceIdx;
 } in_cvFrag;
 

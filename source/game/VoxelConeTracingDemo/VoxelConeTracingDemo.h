@@ -37,7 +37,7 @@ private:
 
 private:
     std::unique_ptr<RenderPipeline> m_renderPipeline;
-    std::vector<BBox> m_clipRegionBBoxes;
+    std::vector<BBox> m_clipRegionBBoxes; // clipmap size
     std::unique_ptr<ClipmapUpdatePolicy> m_clipmapUpdatePolicy;
 
     // ClipRegion extent at level 0 - next level covers twice as much space as the previous level

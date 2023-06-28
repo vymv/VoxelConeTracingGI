@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "*.usf": "hlsl",
+        "*.ush": "hlsl",
+        "*.glc": "glsl",
+        "charconv": "cpp",
+        "xhash": "cpp",
+        "format": "cpp",
+        "random": "cpp",
+        "regex": "cpp",
+        "sstream": "cpp",
+        "xlocnum": "cpp",
+        "xmemory": "cpp"
+    }
+}

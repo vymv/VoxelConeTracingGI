@@ -10,7 +10,7 @@
 #include "/voxelConeTracing/settings.glsl"
 
 uniform int u_clipmapLevel;
-uniform int u_clipmapResolution;
+uniform int u_clipmapResolution; // 128
 uniform int u_clipmapResolutionWithBorder;
 
 uniform vec3 u_regionMin;
@@ -18,13 +18,13 @@ uniform vec3 u_regionMax;
 uniform vec3 u_prevRegionMin;
 uniform vec3 u_prevRegionMax;
 uniform float u_downsampleTransitionRegionSize;
-uniform float u_maxExtent;
+uniform float u_maxExtent; // (minPos + extent) * voxelSize
 uniform float u_voxelSize;
 
 //layout(r32ui) uniform volatile coherent uimage3D u_voxelAlbedo;
 
 // Computation of an extended triangle in clip space based on 
-// "Conservative Rasterization", GPU Gems 2 Chapter 42 by Jon Hasselgren, Tomas Akenine-M�ller and Lennart Ohlsson:
+// "Conservative Rasterization", GPU Gems 2 Chapter 42 by Jon Hasselgren, Tomas Akenine-M�ller and Lennart Ohlsson:
 // http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter42.html
 void computeExtendedTriangle(vec2 halfPixelSize, vec3 triangleNormalClip, inout vec4 trianglePositionsClip[3], out vec4 triangleAABBClip)
 {
@@ -64,7 +64,7 @@ ivec3 computeImageCoords(vec3 posW)
 	float c = u_voxelSize * 0.25; // Error correction constant
 	posW = clamp(posW, u_regionMin + c, u_regionMax - c);
 	
-	vec3 clipCoords = transformPosWToClipUVW(posW, u_maxExtent);
+	vec3 clipCoords = transformPosWToClipUVW(posW, u_maxExtent); // return fract(posW / maxExtent); 取小数部分，原本在1.4，就取0.4
 
     // The & (u_clipmapResolution - 1) (aka % u_clipmapResolution) is important here because
     // clipCoords can be in [0,1] and thus cause problems at the border (value of 1) of the physical

@@ -15,7 +15,8 @@ out ConservativeVoxelizationFragmentInput
 	vec3 posW;
     vec3 posClip;
     flat vec4 triangleAABB;
-	flat vec3[3] trianglePosW;
+	flat vec3[3] trianglePosW; // 保存原来三角形的位置，用于后面的光线三角形相交测试
+	flat int faceIdx;
 	flat int faceIdx;
 } out_cvFrag;
 
@@ -23,9 +24,12 @@ out ConservativeVoxelizationFragmentInput
 // http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter42.html
 void cvGeometryPass(out vec4 positionsClip[3])
 {
+	// 三角面片的主轴
 	int idx = getDominantAxisIdx(gl_in[0].gl_Position.xyz, gl_in[1].gl_Position.xyz, gl_in[2].gl_Position.xyz);
+	// geometry shader的特殊内置输出变量
 	gl_ViewportIndex = idx;
     
+	// 把原三角形的顶点位置变换到垂直于主轴，之后用cvEmitVertex发射
     positionsClip = vec4[3](
         u_viewProj[idx] * gl_in[0].gl_Position,
         u_viewProj[idx] * gl_in[1].gl_Position,
@@ -41,6 +45,7 @@ void cvGeometryPass(out vec4 positionsClip[3])
 	if (triangleNormalClip.z > 0.0)
 		out_cvFrag.faceIdx += 1;
 	
+	// 保存原来三角形的位置，用于后面的光线三角形相交测试
 	// Using the original triangle for the intersection tests introduces a slight underestimation
 	out_cvFrag.trianglePosW[0] = gl_in[0].gl_Position.xyz;
 	out_cvFrag.trianglePosW[1] = gl_in[1].gl_Position.xyz;
@@ -54,9 +59,10 @@ void cvGeometryPass(out vec4 positionsClip[3])
 
 void cvEmitVertex(vec4 posClip)
 {
+	// 三角形里的三个顶点的输出，只有posW，posClip，gl_Position不一样，其他共享
 	gl_Position = posClip;
-	out_cvFrag.posW = (u_viewProjInv[gl_ViewportIndex] * posClip).xyz;
-	out_cvFrag.posClip = posClip.xyz;
+	out_cvFrag.posW = (u_viewProjInv[gl_ViewportIndex] * posClip).xyz; // 原来的位置
+	out_cvFrag.posClip = posClip.xyz; // 变换后的位置
 	
 	EmitVertex();
 }

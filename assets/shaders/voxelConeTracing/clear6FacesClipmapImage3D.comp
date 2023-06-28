@@ -15,7 +15,7 @@ void main()
         gl_GlobalInvocationID.y >= u_extent.y ||
         gl_GlobalInvocationID.z >= u_extent.z) return;
         
-    ivec3 pos = (ivec3(gl_GlobalInvocationID) + u_min) & (u_resolution - 1);
+    ivec3 pos = (ivec3(gl_GlobalInvocationID) + u_min) & (u_resolution - 1); // 取模
     
     int resolution = u_resolution + 2 * u_borderWidth;
     pos += ivec3(u_borderWidth);

@@ -59,6 +59,7 @@ void VoxelizationPass::update()
     m_voxelOpacity = m_renderPipeline->fetchPtr<Texture3D>("VoxelOpacity");
     auto clipRegionBBoxes = m_renderPipeline->fetchPtr<std::vector<BBox>>("ClipRegionBBoxes");
 
+    // 1. 哪些区域需要重新voxel化
     if (m_forceFullRevoxelization)
     {
         for (uint32_t i = 0; i < CLIP_REGION_COUNT; ++i)
@@ -80,6 +81,7 @@ void VoxelizationPass::update()
         computeRevoxelizationRegionsDynamicEntities();
     }
 
+    // 2. 清空voxel opacity
     QueryManager::beginElapsedTime(QueryTarget::GPU, "Clear Voxel Opacity Regions");
     for (uint32_t i = 0; i < CLIP_REGION_COUNT; ++i)
     {
@@ -121,7 +123,7 @@ void VoxelizationPass::update()
         if (m_downsampleUpdateNecessary || m_revoxelizationRegions[i].size() > 0)
         {
             m_downsampleUpdateNecessary = true;
-            Downsampler::downsampleOpacity(m_voxelOpacity, &m_clipRegions, i);
+            Downsampler::downsampleOpacity(m_voxelOpacity, &m_clipRegions, i); // opacity每个level都要downsample
         }
     }
 
@@ -153,6 +155,7 @@ void VoxelizationPass::computeRevoxelizationRegionsClipmap(uint32_t clipmapLevel
     glm::ivec3 newMax = clipRegion.getMaxPos();
 
     // Compute the regions for revoxelization
+    // 对三个方向上的增量部分进行更新
     if (absDelta.x >= m_minChange[clipmapLevel])
     {
         auto regionExtent = glm::ivec3(absDelta.x, extent.y, extent.z);
@@ -189,13 +192,14 @@ glm::ivec3 VoxelizationPass::computeChangeDeltaV(uint32_t clipmapLevel, const BB
     const auto& clipRegion = m_clipRegions[clipmapLevel];
     float voxelSize = clipRegion.voxelSize;
 
+    // camera位置变化了多少
     glm::vec3 deltaW = cameraRegionBBox.min() - clipRegion.getMinPosWorld();
 
     // The camera needs to move at least the specified minChange amount for the portion to be revoxelized
-    float minChange = voxelSize * m_minChange[clipmapLevel];
+    float minChange = voxelSize * m_minChange[clipmapLevel]; // minchange指的是voxel的数量
 
     // Compute the closest delta in voxel coordinates
-    glm::ivec3 delta = glm::ivec3(glm::trunc(deltaW / minChange)) * m_minChange[clipmapLevel];
+    glm::ivec3 delta = glm::ivec3(glm::trunc(deltaW / minChange)) * m_minChange[clipmapLevel]; // glm::trunc(deltaW / minChange) 算出变化了多少格子，向下取整，因此变化不到阈值，则不动
 
     return delta;
 }

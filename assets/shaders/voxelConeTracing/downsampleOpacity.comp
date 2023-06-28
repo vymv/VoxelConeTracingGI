@@ -32,8 +32,8 @@ ivec3 getFaceOffset(int i, int resolution)
 void fetchTexelBlock(int faceIdx, ivec3 positions[8], out vec4 values[8], int resolution)
 {
 	ivec3 faceOffset = getFaceOffset(faceIdx, resolution);
-	values[0] = imageLoad(u_image, positions[0] + faceOffset);
-	values[1] = imageLoad(u_image, positions[1] + faceOffset);
+	values[0] = imageLoad(u_image, positions[0] + faceOffset); // position已经偏移到了指定的level
+	values[1] = imageLoad(u_image, positions[1] + faceOffset); // +faceOffset偏移到指定face
 	values[2] = imageLoad(u_image, positions[2] + faceOffset);
 	values[3] = imageLoad(u_image, positions[3] + faceOffset);
 	values[4] = imageLoad(u_image, positions[4] + faceOffset);
@@ -44,7 +44,7 @@ void fetchTexelBlock(int faceIdx, ivec3 positions[8], out vec4 values[8], int re
 
 ivec3 toCurrentLevelVoxelCoordinates(ivec3 p)
 {
-	return p / 2;
+	return p / 2; // 从前一层到上一层，格子在变大，所有坐标相应的缩小
 }
 
 ivec3 toPrevLevelVoxelCoordinates(ivec3 p)
@@ -54,18 +54,18 @@ ivec3 toPrevLevelVoxelCoordinates(ivec3 p)
 
 ivec3 toImageCoords(ivec3 p, int resolution)
 {
-	return (p + ivec3(resolution) * (abs(p / resolution) + 1)) & (resolution - 1); // & (resolution - 1) is a more efficient % resolution
+	return (p + ivec3(resolution) * (abs(p / resolution) + 1)) & (resolution - 1); // & (resolution - 1) is a more efficient % resolution，限制在resolution内
 }
 
 layout (local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
 void main()
 {
-    int halfClipmapResolution = u_clipmapResolution / 2;
+    int halfClipmapResolution = u_clipmapResolution / 2; // 64
 	if (gl_GlobalInvocationID.x >= halfClipmapResolution ||
 	    gl_GlobalInvocationID.y >= halfClipmapResolution ||
 	    gl_GlobalInvocationID.z >= halfClipmapResolution) return;
-
-	ivec3 curLevelPos = toCurrentLevelVoxelCoordinates(u_prevRegionMin) + ivec3(gl_GlobalInvocationID);
+	// gl_GlobalInvocationID 0~63
+	ivec3 curLevelPos = toCurrentLevelVoxelCoordinates(u_prevRegionMin) + ivec3(gl_GlobalInvocationID); // 单个clipmap块内的偏移
 	ivec3 prevLevelPos = toPrevLevelVoxelCoordinates(curLevelPos);
 	ivec3 prevImagePosStart = toImageCoords(prevLevelPos, u_clipmapResolution);
 	
@@ -87,7 +87,7 @@ void main()
 #ifdef VOXEL_TEXTURE_WITH_BORDER
 		imagePositions[i] += ivec3(BORDER_WIDTH);
 #endif
-		imagePositions[i].y += resolution * (u_clipmapLevel - 1);
+		imagePositions[i].y += resolution * (u_clipmapLevel - 1); // 偏移到指定的level，注意是前一层
 	}
 	
 	vec4 values[8];

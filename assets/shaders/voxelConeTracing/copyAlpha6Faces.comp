@@ -31,6 +31,6 @@ void main()
         vec4 dstColor = imageLoad(u_dstImage, pos);
         dstColor.a = srcColor.a;
         imageStore(u_dstImage, pos, dstColor);
-        pos.x += u_clipmapResolutionWithBorder;
+        pos.x += u_clipmapResolutionWithBorder; // 换个方向，每个方向都copy一样的opacity
     }
 }

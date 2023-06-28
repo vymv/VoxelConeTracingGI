@@ -36,6 +36,7 @@ void RadianceInjectionPass::update()
 
     auto clipRegions = m_renderPipeline->fetchPtr<std::vector<VoxelRegion>>("ClipRegions");
 
+    // 准备 m_cachedClipRegions
     if (m_initializing)
     {
         m_cachedClipRegions = *clipRegions;
@@ -60,6 +61,7 @@ void RadianceInjectionPass::injectByVoxelization(Shader* shader, Texture3D* voxe
 {
     static unsigned char zero[]{ 0, 0, 0, 0 };
 
+    // 1. 清空 voxelRadiance
     QueryManager::beginElapsedTime(QueryTarget::GPU, "Clear Radiance Voxels");
 
     auto& levelsToUpdate = m_clipmapUpdatePolicy->getLevelsScheduledForUpdate();
@@ -73,6 +75,7 @@ void RadianceInjectionPass::injectByVoxelization(Shader* shader, Texture3D* voxe
         for (auto level : levelsToUpdate)
         {
             auto clipLevel = static_cast<GLuint>(level);
+            //ImageCleaner::clear6FacesImage3D(*m_voxelOpacity, GL_RGBA8, region.getMinPosImage(m_clipRegions[i].extent), region.extent, VOXEL_RESOLUTION, GLuint(i), 1);
             ImageCleaner::clear6FacesImage3D(*voxelRadiance, GL_RGBA8, glm::ivec3(0), glm::ivec3(VOXEL_RESOLUTION), VOXEL_RESOLUTION, clipLevel, 1);
         }
 
@@ -81,6 +84,7 @@ void RadianceInjectionPass::injectByVoxelization(Shader* shader, Texture3D* voxe
 
     QueryManager::endElapsedTime(QueryTarget::GPU, "Clear Radiance Voxels");
 
+    // 2. Voxelization
     QueryManager::beginElapsedTime(QueryTarget::GPU, "Radiance Voxelization");
     VoxelizationDesc desc;
     desc.mode = voxelizationMode;

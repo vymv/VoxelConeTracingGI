@@ -84,7 +84,7 @@ namespace voxelization
     void setViewports(Shader* shader, const glm::vec3& viewportSize)
     {
         glm::vec2 viewportSizes[3];
-        viewportSizes[0] = glm::vec2(viewportSize.z, viewportSize.y);
+        viewportSizes[0] = glm::vec2(viewportSize.z, viewportSize.y); // 如果x是主轴，从x方向看，viewportsize应该是z和y
         viewportSizes[1] = glm::vec2(viewportSize.x, viewportSize.z);
         viewportSizes[2] = glm::vec2(viewportSize.x, viewportSize.y);
 
@@ -161,7 +161,7 @@ void Voxelizer::beginVoxelization(const VoxelizationDesc& desc)
 void Voxelizer::voxelize(const VoxelRegion& voxelRegion, int clipmapLevel)
 {
     Shader* shader = m_voxelizationDesc.voxelizationShader;
-    auto& clipRegions = m_voxelizationDesc.clipRegions;
+    auto& clipRegions = m_voxelizationDesc.clipRegions; // 原本的region
 
     // Extend by epsilon to prevent potential floating point imprecision problems (fragments that fail to be voxelized)
     glm::vec3 regionMinWorld = voxelRegion.getMinPosWorld() - math::EPSILON5;

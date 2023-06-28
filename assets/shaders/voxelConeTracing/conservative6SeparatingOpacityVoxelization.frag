@@ -33,7 +33,8 @@ void main()
     // Commenting both out fixes the problem of missing voxelization
     if (isOutsideVoxelizationRegion(in_cvFrag.posW))
         discard;
-      
+
+    //  如果当前图元不和voxel相交，则丢弃
     if (!cvIntersectsTriangle(in_cvFrag.posW))
         discard;
     
@@ -55,7 +56,7 @@ void main()
     //    //imageAtomicRGBA8Avg(u_voxelOpacity, imageCoords + ivec3(in_cvFrag.faceIdx * u_clipmapResolutionWithBorder, 0, 0), texColor);
     //}
 
-    
+    // 给指定voxel写入不透明
     ivec3 imageCoords = computeImageCoords(in_cvFrag.posW);
 
     for (int i = 0; i < 6; ++i)
